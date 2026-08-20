@@ -3,12 +3,14 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
-import { ProfileRow, RoadmapRow, ActivityRow } from "@/lib/types/supabase";
+import { ProfileRow, RoadmapRow, ActivityRow, GoalRow, AchievementRow } from "@/lib/types/supabase";
 
 export default function Dashboard() {
   const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [roadmaps, setRoadmaps] = useState<RoadmapRow[]>([]);
   const [recentActivity, setRecentActivity] = useState<ActivityRow[]>([]);
+  const [goals, setGoals] = useState<GoalRow[]>([]);
+  const [achievements, setAchievements] = useState<AchievementRow[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -48,6 +50,37 @@ export default function Dashboard() {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
+      // Fetch recent activity (last 5)
+      const {
+        data: activityData,
+        error: activityError,
+      } = await supabase
+        .from("activity")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      // Fetch goals
+      const {
+        data: goalsData,
+        error: goalsError,
+      } = await supabase
+        .from("goals")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      // Fetch achievements
+      const {
+        data: achievementsData,
+        error: achievementsError,
+      } = await supabase
+        .from("achievements")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("earned_at", { ascending: false });
+
       if (profileError) {
         console.error("Error fetching profile:", profileError);
       } else {
@@ -60,21 +93,22 @@ export default function Dashboard() {
         setRoadmaps(roadmapData as RoadmapRow[]);
       }
 
-      // Fetch activity
-      const {
-        data: activityData,
-        error: activityError,
-      } = await supabase
-        .from("activity")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(5);
-
       if (activityError) {
         console.error("Error fetching activity:", activityError);
       } else {
         setRecentActivity(activityData as ActivityRow[]);
+      }
+
+      if (goalsError) {
+        console.error("Error fetching goals:", goalsError);
+      } else {
+        setGoals(goalsData as GoalRow[]);
+      }
+
+      if (achievementsError) {
+        console.error("Error fetching achievements:", achievementsError);
+      } else {
+        setAchievements(achievementsData as AchievementRow[]);
       }
 
       setLoading(false);
@@ -101,7 +135,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-dark-bg text-dark-fg p-6 sm:p-8">
-      <header className="border-b dark:border-gray-600 mb-6">
+      <header className="border-b dark.border-gray-600 mb-6">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <h1 className="text-2xl font-bold tracking-wide">Dashboard</h1>
           <a href="/profile" className="text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
@@ -124,6 +158,7 @@ export default function Dashboard() {
       </header>
 
       <main className="max-w-7xl mx-auto grid gap-6 sm:grid-cols-2">
+        {/* Welcome Section */}
         <div className="bg-gray-800/50 rounded-lg p-6">
           <h3 className="font-medium mb-3">Welcome</h3>
           <p className="text-lg">
@@ -132,6 +167,7 @@ export default function Dashboard() {
           </p>
         </div>
 
+        {/* Cybersecurity Interests Section */}
         <div className="bg-gray-800/50 rounded-lg p-6">
           <h3 className="font-medium mb-3">Cybersecurity Interests</h3>
           <ul className="text-sm text-gray-300 space-y-2">
@@ -149,21 +185,34 @@ export default function Dashboard() {
           </ul>
         </div>
 
-        <div className="bg-gray-800/50 rounded-lg p-6 sm:col-span-2">
-          <h3 className="font-medium mb-3">GitHub Integration</h3>
-          <p className="text-sm text-gray-400">
-            Connect your GitHub account to track repositories and contributions.
-            <a
-              href="/profile"
-              className="font-medium underline underline-offset-4 hover:text-indigo-300 transition-colors ml-1"
-            >
-              Update profile
-            </a>
-          </p>
+        {/* Goals Section */}
+        <div className="bg-gray-800/50 rounded-lg p-6">
+          <h3 className="font-medium mb-3">Goals</h3>
+          {goals.length > 0 ? (
+            <ul className="text-sm text-gray-300 space-y-1">
+              {goals.map((goal) => (
+                <li key={goal.id} className="flex items-center gap-2">
+                  <span className="font-medium">{goal.title}</span>
+                  <span className="text-gray-400 text-xs ml-auto">
+                    {goal.progress}% complete
+                  </span>
+                  {goal.target_date ? (
+                    <span className="text-xs text-gray-500">
+                      expires {new Date(goal.target_date).toLocaleDateString()}
+                    </span>
+                  ) : (
+                    <span></span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-500">No goals set</p>
+          )}
         </div>
 
         {/* Roadmaps Section */}
-        <div className="bg-gray-800/50 rounded-lg p-6 mt-6">
+        <div className="bg-gray-800/50 rounded-lg p-6 sm:col-span-2">
           <h3 className="font-medium mb-3">Learning Roadmaps</h3>
           {roadmaps.length > 0 ? (
             <ul className="text-sm text-gray-300 space-y-2">
@@ -186,8 +235,29 @@ export default function Dashboard() {
           )}
         </div>
 
+        {/* Achievements Section */}
+        <div className="bg-gray-800/50 rounded-lg p-6">
+          <h3 className="font-medium mb-3">Achievements</h3>
+          {achievements.length > 0 ? (
+            <ul className="text-sm text-gray-300 space-y-1">
+              {achievements.map((achievement) => (
+                <li key={achievement.id} className="flex items-center gap-2">
+                  <span className="bg-indigo-500/20 text-indigo-300 rounded px-2 py-0.5 text-xs">
+                    {achievement.title}
+                  </span>
+                  <span className="text-gray-400 text-xs">
+                    earned {new Date(achievement.earned_at).toLocaleDateString()}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-500">No achievements yet</p>
+          )}
+        </div>
+
         {/* Recent Activity Section */}
-        <div className="bg-gray-800/50 rounded-lg p-6 mt-6">
+        <div className="bg-gray-800/50 rounded-lg p-6">
           <h3 className="font-medium mb-3">Recent Activity</h3>
           {recentActivity.length > 0 ? (
             <ul className="text-sm text-gray-300 space-y-1">
@@ -209,9 +279,20 @@ export default function Dashboard() {
             <p className="text-gray-500">No recent activity</p>
           )}
         </div>
+
+        {/* Connected Platforms Section */}
+        <div className="bg-gray-800/50 rounded-lg p-6">
+          <h3 className="font-medium mb-3">Connected Platforms</h3>
+          <p className="text-sm text-gray-400 mb-2">
+            Platforms connected to import activity.
+          </p>
+          <p className="text-xs text-gray-500">
+            Use /platforms to manage connections.
+          </p>
+        </div>
       </main>
 
-      <div className="mt-8 pt-8 border-t dark:border-gray-600">
+      <div className="mt-8 pt-8 border-t dark.border-gray-600">
         <p className="text-sm text-gray-500">
           CyberSync Foundation v0.1.0{" "}
           <a
