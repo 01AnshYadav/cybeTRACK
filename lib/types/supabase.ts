@@ -9,3 +9,38 @@ export interface ProfileRow {
   created_at: string;
   updated_at: string;
 }
+
+export interface RoadmapRow {
+  id: string;
+  user_id: string;
+  title: string;
+  description: string;
+  domain: string;
+  status: string;
+  target_date: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RoadmapSkillRow {
+  id: string;
+  roadmap_id: string;
+  skill_name: string;
+  level: string;
+  progress: number;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ConnectedAccountRow {
+  id: string;
+  user_id: string;
+  platform: string;
+  platform_user_id: string;
+  access_token: string;
+  refresh_token: string;
+  expires_at: string;
+  created_at: string;
+  updated_at: string;
+}

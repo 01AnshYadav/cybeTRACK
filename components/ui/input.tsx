@@ -7,6 +7,7 @@ export function Input({
   onChange,
   disabled,
   className,
+  required,
 }: {
   type?: string;
   placeholder?: string;
@@ -14,6 +15,7 @@ export function Input({
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   disabled?: boolean;
   className?: string;
+  required?: boolean;
 }) {
   const classes = `
     w-full rounded border border-gray-600 px-4 py-3 text-dark-fg focus:outline-none focus:border-indigo-500 transition-colors
@@ -39,12 +41,14 @@ export function Textarea({
   onChange,
   disabled,
   className,
+  rows,
 }: {
   placeholder?: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   disabled?: boolean;
   className?: string;
+  rows?: number;
 }) {
   const classes = `
     w-full rounded border border-gray-600 px-4 py-3 text-dark-fg focus:outline-none focus:border-indigo-500 transition-colors resize-none

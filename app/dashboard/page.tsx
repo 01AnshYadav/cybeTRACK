@@ -3,19 +3,20 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
-import { ProfileRow } from "@/lib/types/supabase";
+import { ProfileRow, RoadmapRow } from "@/lib/types/supabase";
 
 export default function Dashboard() {
   const [profile, setProfile] = useState<ProfileRow | null>(null);
+  const [roadmaps, setRoadmaps] = useState<RoadmapRow[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
+  useEffect(() => {
     const init = async () => {
       const {
         data: { user },
@@ -26,20 +27,38 @@ export default function Dashboard() {
         return;
       }
 
+      // Fetch profile
       const {
-        data,
-        error,
+        data: profileData,
+        error: profileError,
       } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", user.id)
         .single();
 
-      if (error) {
-        console.error("Error fetching profile:", error);
+      // Fetch roadmaps
+      const {
+        data: roadmapData,
+        error: roadmapError,
+      } = await supabase
+        .from("roadmaps")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (profileError) {
+        console.error("Error fetching profile:", profileError);
       } else {
-        setProfile(data);
+        setProfile(profileData as ProfileRow);
       }
+
+      if (roadmapError) {
+        console.error("Error fetching roadmaps:", roadmapError);
+      } else {
+        setRoadmaps(roadmapData as RoadmapRow[]);
+      }
+
       setLoading(false);
     };
 
@@ -123,6 +142,30 @@ export default function Dashboard() {
               Update profile
             </a>
           </p>
+        </div>
+
+        {/* Roadmaps Section */}
+        <div className="bg-gray-800/50 rounded-lg p-6 mt-6">
+          <h3 className="font-medium mb-3">Learning Roadmaps</h3>
+          {roadmaps.length > 0 ? (
+            <ul className="text-sm text-gray-300 space-y-2">
+              {roadmaps.map((roadmap) => (
+                <li key={roadmap.id} className="flex items-center gap-3">
+                  <span className="bg-indigo-500/20 text-indigo-300 rounded px-2 py-0.5 text-xs">
+                    {roadmap.title}
+                  </span>
+                  <span className="text-gray-400 text-xs">
+                    {roadmap.domain || "—"}
+                  </span>
+                  <span className="text-gray-500 text-xs ml-2">
+                    {roadmap.status}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-500">No roadmaps yet. <a href="/roadmap" className="font-medium underline hover:text-indigo-300 transition-colors">Create your first roadmap</a>.</p>
+          )}
         </div>
       </main>
 
