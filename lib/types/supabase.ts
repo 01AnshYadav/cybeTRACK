@@ -58,6 +58,17 @@ export interface ConnectedAccountRow {
   updated_at: string;
 }
 
+export interface ActivityRow {
+  id: string;
+  user_id: string;
+  activity_type: string;
+  title: string;
+  description: string;
+  metadata: string;
+  source: string;
+  created_at: string;
+}
+
 export interface ResourceRow {
   id: string;
   user_id: string;

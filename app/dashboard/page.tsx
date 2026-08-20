@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
-import { ProfileRow, RoadmapRow } from "@/lib/types/supabase";
+import { ProfileRow, RoadmapRow, ActivityRow } from "@/lib/types/supabase";
 
 export default function Dashboard() {
   const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [roadmaps, setRoadmaps] = useState<RoadmapRow[]>([]);
+  const [recentActivity, setRecentActivity] = useState<ActivityRow[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -57,6 +58,23 @@ export default function Dashboard() {
         console.error("Error fetching roadmaps:", roadmapError);
       } else {
         setRoadmaps(roadmapData as RoadmapRow[]);
+      }
+
+      // Fetch activity
+      const {
+        data: activityData,
+        error: activityError,
+      } = await supabase
+        .from("activity")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      if (activityError) {
+        console.error("Error fetching activity:", activityError);
+      } else {
+        setRecentActivity(activityData as ActivityRow[]);
       }
 
       setLoading(false);
@@ -165,6 +183,30 @@ export default function Dashboard() {
             </ul>
           ) : (
             <p className="text-gray-500">No roadmaps yet. <a href="/roadmap" className="font-medium underline hover:text-indigo-300 transition-colors">Create your first roadmap</a>.</p>
+          )}
+        </div>
+
+        {/* Recent Activity Section */}
+        <div className="bg-gray-800/50 rounded-lg p-6 mt-6">
+          <h3 className="font-medium mb-3">Recent Activity</h3>
+          {recentActivity.length > 0 ? (
+            <ul className="text-sm text-gray-300 space-y-1">
+              {recentActivity.map((activityItem) => (
+                <li key={activityItem.id} className="flex items-center gap-2">
+                  <span className="text-indigo-400 text-xs font-medium">
+                    {activityItem.activity_type}
+                  </span>
+                  <span className="text-gray-300 text-xs">
+                    {activityItem.title}
+                  </span>
+                  <span className="text-gray-400 text-xs ml-auto">
+                    {new Date(activityItem.created_at).toLocaleTimeString()}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-500">No recent activity</p>
           )}
         </div>
       </main>
