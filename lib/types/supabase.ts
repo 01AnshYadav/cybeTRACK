@@ -44,3 +44,16 @@ export interface ConnectedAccountRow {
   created_at: string;
   updated_at: string;
 }
+
+export interface ResourceRow {
+  id: string;
+  user_id: string;
+  roadmap_skill_id: string;
+  title: string;
+  description: string;
+  url: string;
+  resource_type: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
