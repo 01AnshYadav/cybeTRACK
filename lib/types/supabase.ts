@@ -33,6 +33,19 @@ export interface RoadmapSkillRow {
   updated_at: string;
 }
 
+export interface GoalRow {
+  id: string;
+  user_id: string;
+  title: string;
+  description: string;
+  status: string;
+  target_date: string;
+  progress: number;
+  roadmap_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface ConnectedAccountRow {
   id: string;
   user_id: string;
