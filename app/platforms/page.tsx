@@ -23,9 +23,7 @@ export default function PlatformsPage() {
 
   useEffect(() => {
     const init = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
         router.push("/login");
@@ -85,11 +83,9 @@ export default function PlatformsPage() {
     <div className="min-h-screen bg-dark-bg text-dark-fg p-6 sm:p-8">
       <header className="border-b dark.border-gray-600 mb-6">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-wide">
-            Connected Platforms
-          </h1>
+          <h1 className="text-2xl font-bold tracking-wide">Connected Platforms</h1>
           <a href="/dashboard" className="text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
-            ← Back to Dashboard
+            Back to Dashboard
           </a>
         </div>
       </header>
@@ -116,16 +112,28 @@ export default function PlatformsPage() {
                   <p className="text-xs text-gray-500">
                     Linked account: {acc.platform_user_id || "—"}
                   </p>
-                  <Button
-                    variant="outline"
-                    className="mt-2 w-full text-sm"
-                    onClick={() => {
-                      window.alert(
-                        "Disconnect functionality would revoke OAuth tokens and remove the connection."
-                      );
-                    }}>
+                  <div className="mt-2">
+                    <Button
+                      variant="outline"
+                      className="w-full text-sm"
+                      onClick={() => {
+                        window.alert(
+                          "Disconnect functionality would revoke OAuth tokens and remove the connection."
+                        );
+                      }}
+                    >
                       Disconnect
                     </Button>
+                  </div>
+                  <div className="mt-2">
+                    <Button
+                      variant="secondary"
+                      className="w-full text-sm"
+                      onClick={() => syncAccountActivity(acc.platform)}
+                    >
+                      Sync Activity
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -176,7 +184,26 @@ export default function PlatformsPage() {
             </Button>
           </div>
         </div>
+
+        {/* Sync Status */}
+        <div className="bg-gray-800/50 rounded-lg p-6 mt-6">
+          <h3 className="font-medium mb-3">Sync Status</h3>
+          <p className="text-sm text-gray-400 mb-4">
+            Activity is automatically tracked when you perform actions on connected platforms.
+          </p>
+          <p className="text-xs text-gray-500">
+            Last full sync:{(connectedAccounts.length > 0 ? connectedAccounts.map((a) => `${a.platform}: ${a.last_synced_at || "never"}`).join(", ") : "No accounts connected")}
+          </p>
+        </div>
       </main>
     </div>
+  );
+}
+
+async function syncAccountActivity(platform: string) {
+  // In a full implementation, this would trigger the platform OAuth flow
+  // and then import new activity entries into the activity table
+  window.alert(
+    `Sync for ${platform} would import new activity entries from your platform account.`
   );
 }
