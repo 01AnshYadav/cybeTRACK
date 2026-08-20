@@ -58,6 +58,17 @@ export interface ConnectedAccountRow {
   updated_at: string;
 }
 
+export interface AchievementRow {
+  id: string;
+  user_id: string;
+  title: string;
+  description: string;
+  earned_at: string;
+  metadata: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface ActivityRow {
   id: string;
   user_id: string;
