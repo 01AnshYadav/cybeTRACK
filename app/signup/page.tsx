@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase-browser";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -10,11 +10,6 @@ export default function SignupPage() {
   const [displayName, setDisplayName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,14 +43,26 @@ export default function SignupPage() {
             github_username: "",
             interests: [],
             avatar_url: null,
+            is_public: false,
+            display_name_visibility: "public",
+            bio_visibility: "public",
+            interests_visibility: "public",
+            github_username_visibility: "public",
           });
 
         if (profileError) {
-          console.error("Error creating profile:", profileError);
-          // Profile creation failed, but auth user exists.
-          // The user can create their profile later from the profile page.
-          setError("Account created, but profile could not be initialized. Please complete your profile.");
+          console.error("PROFILE INSERT FAILED");
+          console.error("code:", profileError?.code);
+          console.error("message:", profileError?.message);
+          console.error("details:", profileError?.details);
+          console.error("hint:", profileError?.hint);
+          console.error("string:", String(profileError));
+          setError(
+            `Profile creation failed: ${profileError?.message || "Unknown error"}`
+          );
+          return;
         }
+        console.log("Profile created successfully");
       }
     } catch (err: unknown) {
       setError((err as Error).message || "Signup failed. Please try again.");

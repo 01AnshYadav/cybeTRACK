@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient, User } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase-browser";
+import { User } from "@supabase/supabase-js";
 import { Recommendation } from "@/lib/recommendations";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -23,11 +24,6 @@ export default function RecommendationsPage() {
   const [progressGapSuggestions, setProgressGapSuggestions] =
     useState<Recommendation[]>([]);
   const router = useRouter();
-
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
 
   useEffect(() => {
     const init = async () => {

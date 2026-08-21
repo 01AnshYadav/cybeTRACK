@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient, User } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase-browser";
+import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 
 export default function PlatformsPage() {
@@ -15,11 +16,6 @@ export default function PlatformsPage() {
     }[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
 
   useEffect(() => {
     const init = async () => {

@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient, User } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase-browser";
+import { User } from "@supabase/supabase-js";
 import { RoadmapRow, RoadmapSkillRow } from "@/lib/types/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,12 +26,9 @@ export default function RoadmapPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [domain, setDomain] = useState<string | undefined>(undefined);
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [generating, setGenerating] = useState(false);
   const router = useRouter();
-
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
 
   useEffect(() => {
     const init = async () => {
@@ -90,6 +88,7 @@ export default function RoadmapPage() {
 
     init();
   }, [router]);
+
 
   if (loading) {
     return (
@@ -267,6 +266,79 @@ export default function RoadmapPage() {
     }
   };
 
+  const handleGenerateFromPdf = async () => {
+    if (!pdfFile || !user) return;
+    setError(null);
+    setSuccess(null);
+    setGenerating(true);
+
+    try {
+      // 1. Upload PDF to API
+      const formData = new FormData();
+      formData.append("pdf", pdfFile);
+
+      const res = await fetch("/api/roadmap/generate-from-pdf", {
+        method: "POST",
+        body: formData,
+      });
+
+      const body = await res.json();
+
+      if (!res.ok) {
+        throw new Error(body.error || "PDF processing failed.");
+      }
+
+      const skills: { skill_name: string; level: string }[] = body.skills;
+      if (!skills || skills.length === 0) {
+        throw new Error("No skills found in the PDF.");
+      }
+
+      // 2. Create roadmap row
+      const { data: roadmapData, error: roadmapError } = await supabase
+        .from("roadmaps")
+        .insert({
+          user_id: user.id,
+          title: "Imported Roadmap",
+          status: "active",
+        })
+        .select()
+        .single();
+
+      if (roadmapError || !roadmapData) {
+        throw new Error(
+          `Failed to create roadmap: ${roadmapError?.message || "Unknown error"}`
+        );
+      }
+
+      // 3. Bulk-insert skills
+      const skillRows = skills.map((s, i) => ({
+        roadmap_id: roadmapData.id,
+        skill_name: s.skill_name,
+        level: s.level || "beginner",
+        status: "pending",
+        progress: 0,
+      }));
+
+      const { error: skillsError } = await supabase
+        .from("roadmap_skills")
+        .insert(skillRows);
+
+      if (skillsError) {
+        throw new Error(
+          `Roadmap created but failed to add skills: ${skillsError.message}`
+        );
+      }
+
+      setSuccess(`Imported ${skills.length} skills from your PDF.`);
+      setPdfFile(null);
+      window.location.reload();
+    } catch (err: unknown) {
+      setError((err as Error).message || "Failed to generate roadmap from PDF.");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-dark-bg text-dark-fg p-6 sm:p-8">
       <header className="border-b dark:border-gray-600 mb-6">
@@ -374,6 +446,29 @@ export default function RoadmapPage() {
               </div>
             </div>
           </form>
+        </div>
+
+        {/* Generate from PDF */}
+        <div className="bg-gray-800/50 rounded-lg p-6 mb-6">
+          <h3 className="font-medium mb-3">Generate Roadmap from PDF</h3>
+          <p className="text-sm text-gray-400 mb-4">
+            Upload a learning roadmap PDF and extract the skills into a new roadmap automatically.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <input
+              type="file"
+              accept=".pdf,application/pdf"
+              onChange={(e) => setPdfFile(e.target.files?.[0] ?? null)}
+              className="flex-1 text-sm text-gray-300 file:mr-3 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-medium file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer"
+            />
+            <button
+              onClick={handleGenerateFromPdf}
+              disabled={!pdfFile || generating}
+              className="flex h-10 items-center justify-center rounded-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium px-6 transition-colors shadow-sm shadow-indigo-600/20"
+            >
+              {generating ? "Reading your roadmap..." : "Generate from PDF"}
+            </button>
+          </div>
         </div>
 
         {/* Roadmaps with Skills */}

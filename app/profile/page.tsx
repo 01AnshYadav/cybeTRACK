@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase-browser";
 import { ProfileRow } from "@/lib/types/supabase";
 
 export default function ProfilePage() {
@@ -17,10 +17,6 @@ export default function ProfilePage() {
   const router = useRouter();
 
   useEffect(() => {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
 
     const init = async () => {
       const {
@@ -62,10 +58,7 @@ export default function ProfilePage() {
     if (profile?.id === undefined) return;
 
     try {
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      );
+      // Use the shared supabase client
 
       const { error } = await supabase
         .from("profiles")

@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase-browser";
 
 export default function LeaderboardPage() {
   const [loading, setLoading] = useState(true);
@@ -17,25 +19,20 @@ export default function LeaderboardPage() {
     }>
   >([]);
   const [loaded, setLoaded] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     let cancelled = false;
 
     const init = async () => {
       try {
-        const supabaseUrl =
-          process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const supabaseAnonKey =
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-        if (!supabaseUrl || !supabaseAnonKey) {
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
           throw new Error("Supabase environment variables not configured");
         }
 
-        const { createClient } = await import("@supabase/supabase-js");
-        const supabase = createClient(supabaseUrl, supabaseAnonKey);
+        const supa = supabase;
 
-        const { data, error: qError } = await supabase
+        const { data, error: qError } = await supa
           .from("leaderboard_ranking")
           .select("*");
 
@@ -70,7 +67,7 @@ export default function LeaderboardPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [router]);
 
   if (loading) {
     return (

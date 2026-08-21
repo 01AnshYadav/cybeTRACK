@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase-browser";
 import { ProfileRow, RoadmapRow, ActivityRow, GoalRow, AchievementRow } from "@/lib/types/supabase";
 
 export default function Dashboard() {
@@ -13,11 +13,6 @@ export default function Dashboard() {
   const [achievements, setAchievements] = useState<AchievementRow[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
 
   useEffect(() => {
     const init = async () => {
@@ -82,31 +77,46 @@ export default function Dashboard() {
         .order("earned_at", { ascending: false });
 
       if (profileError) {
-        console.error("Error fetching profile:", profileError);
+        console.error("Error fetching profile - message:", profileError?.message);
+        console.error("Error fetching profile - code:", profileError?.code);
+        console.error("Error fetching profile - details:", profileError?.details);
+        console.error("Error fetching profile - hint:", profileError?.hint);
       } else {
         setProfile(profileData as ProfileRow);
       }
 
       if (roadmapError) {
-        console.error("Error fetching roadmaps:", roadmapError);
+        console.error("Error fetching roadmaps - message:", roadmapError?.message);
+        console.error("Error fetching roadmaps - code:", roadmapError?.code);
+        console.error("Error fetching roadmaps - details:", roadmapError?.details);
+        console.error("Error fetching roadmaps - hint:", roadmapError?.hint);
       } else {
         setRoadmaps(roadmapData as RoadmapRow[]);
       }
 
       if (activityError) {
-        console.error("Error fetching activity:", activityError);
+        console.error("Error fetching activity - message:", activityError?.message);
+        console.error("Error fetching activity - code:", activityError?.code);
+        console.error("Error fetching activity - details:", activityError?.details);
+        console.error("Error fetching activity - hint:", activityError?.hint);
       } else {
         setRecentActivity(activityData as ActivityRow[]);
       }
 
       if (goalsError) {
-        console.error("Error fetching goals:", goalsError);
+        console.error("Error fetching goals - message:", goalsError?.message);
+        console.error("Error fetching goals - code:", goalsError?.code);
+        console.error("Error fetching goals - details:", goalsError?.details);
+        console.error("Error fetching goals - hint:", goalsError?.hint);
       } else {
         setGoals(goalsData as GoalRow[]);
       }
 
       if (achievementsError) {
-        console.error("Error fetching achievements:", achievementsError);
+        console.error("Error fetching achievements - message:", achievementsError?.message);
+        console.error("Error fetching achievements - code:", achievementsError?.code);
+        console.error("Error fetching achievements - details:", achievementsError?.details);
+        console.error("Error fetching achievements - hint:", achievementsError?.hint);
       } else {
         setAchievements(achievementsData as AchievementRow[]);
       }
@@ -143,10 +153,6 @@ export default function Dashboard() {
           </a>
           <button
             onClick={async () => {
-              const supabase = createClient(
-                process.env.NEXT_PUBLIC_SUPABASE_URL!,
-                process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-              );
               await supabase.auth.signOut();
               router.push("/login");
             }}
